@@ -12,19 +12,37 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HelloWorld"
         tools:targetApi="33">
+        <provider
+            android:name=".StudentProvider"
+            android:authorities="com.krxk.helloworld"
+            android:enabled="true"
+            android:exported="true"></provider>
+
+        <receiver
+            android:name=".MyReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.krxk.Custom_Intent" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".KrxkService"
+            android:enabled="true"
+            android:exported="true" />
 
         <activity
             android:name=".MainActivity"
+            android:exported="true"
             android:label="@string/title_activity_main"
-            android:theme="@style/Theme.HelloWorld"
-            android:exported="true">
-
+            android:theme="@style/Theme.HelloWorld">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
     </application>
 
 </manifest>
