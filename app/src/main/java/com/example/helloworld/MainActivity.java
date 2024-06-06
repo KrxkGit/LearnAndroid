@@ -3,6 +3,7 @@ package com.example.helloworld;
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -178,10 +179,42 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickQueryStudentNameByNo(View view) {
+        String No = ((EditText)findViewById(R.id.stu_No)).getText().toString();
+        String selection = StudentProvider.No + " = ?";
+        String[] selectArgs = {No};
 
+        String URL = StudentProvider.URL;
+        Uri uriStudent = Uri.parse(URL);
+        Cursor cursor = getContentResolver().query(uriStudent, new String[]{StudentProvider.NAME},
+                selection, selectArgs, null);
+
+        EditText nameText = findViewById(R.id.stu_Name);
+        if (cursor.moveToFirst()) {
+            int colIndex = cursor.getColumnIndex(StudentProvider.NAME);
+            Log.d(TAG, "colIndex: " + colIndex);
+            nameText.setText(cursor.getString(
+            colIndex >= 0 ? colIndex : 0));
+        } else {
+//            nameText.setText("查无此人");
+            nameText.setHint("查无此人");
+        }
     }
 
     public void onClickDelStu(View view) {
+        String URL = StudentProvider.URL;
+        Uri uri = Uri.parse(URL);
 
+        String selection = StudentProvider.No + " = ?";
+
+        String number = ((EditText)findViewById(R.id.stu_No)).getText().toString();
+        String[] selectArgs = {number};
+        int rowsDeleted = getContentResolver().delete(uri, selection, selectArgs);
+        if (rowsDeleted != 0) {
+            Toast.makeText(getBaseContext(),  rowsDeleted + "条记录被删除", Toast.LENGTH_LONG).
+                    show();
+        } else {
+            Toast.makeText(getBaseContext(),  "删除失败", Toast.LENGTH_LONG).
+                    show();
+        }
     }
 }

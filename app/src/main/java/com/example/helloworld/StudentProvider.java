@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.util.Log;
+import android.widget.Toast;
 
 public class StudentProvider extends ContentProvider {
     private final String TAG = "Krxk Provider";
@@ -28,14 +29,14 @@ public class StudentProvider extends ContentProvider {
     static final int DATABASE_VERSION = 1;
     static final String CREATE_DB_TABLE =
             " CREATE TABLE " + STUDENTS_TABLE_NAME +
-                    " (_No INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    " name TEXT NOT NULL)";
+                    " (number INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    " name TEXT NOT NULL);";
 
     static final String NAME = "name";
-    static final String No = "No";
+    static final String No = "number";
 
     /**
-     * 数据库创建辅助内部类
+     * 数据库创建打开、创建表辅助内部类
      */
     private static class DatabaseHelper extends SQLiteOpenHelper {
         DatabaseHelper(Context context) {
@@ -48,8 +49,10 @@ public class StudentProvider extends ContentProvider {
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            db.execSQL("DROP TABLE IF EXISTS " + STUDENTS_TABLE_NAME);
-            onCreate(db);
+            if (newVersion > oldVersion) {
+                db.execSQL("DROP TABLE IF EXISTS " + STUDENTS_TABLE_NAME);
+                onCreate(db);
+            }
         }
     }
 
@@ -59,7 +62,9 @@ public class StudentProvider extends ContentProvider {
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         // Implement this to handle requests to delete one or more rows.
-        throw new UnsupportedOperationException("Not yet implemented");
+        String tableName = uri.getPathSegments().get(0);
+        return db.delete(tableName, selection, selectionArgs);
+//        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
@@ -71,20 +76,25 @@ public class StudentProvider extends ContentProvider {
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        /**
-         * 添加新学生记录
-         */
-        // TODO: Implement this to handle requests to insert a new row.
-        long rowId = db.insert(STUDENTS_TABLE_NAME, "", values);
-        if (rowId > 0) {
-            // 添加成功
-            Uri _uri = ContentUris.withAppendedId(ContentUri, rowId);
-            getContext().getContentResolver().notifyChange(_uri, null);
+        try {
+            /**
+             * 添加新学生记录
+             */
+            // TODO: Implement this to handle requests to insert a new row.
+            long rowId = db.insert(STUDENTS_TABLE_NAME, "", values);
+            if (rowId > 0) {
+                // 添加成功
+                Uri _uri = ContentUris.withAppendedId(ContentUri, rowId);
+                getContext().getContentResolver().notifyChange(_uri, null);
 
-            Log.d(TAG, "insert: success");
-            return _uri;
+                Log.d(TAG, "insert: success");
+                return _uri;
+            }
+            throw new SQLException("Failed to add a record into " + uri);
+        } catch (SQLException e) {
+            Toast.makeText(getContext(),e.getMessage(),Toast.LENGTH_SHORT).show();
+            return null;
         }
-        throw new SQLException("Failed to add a record into " + uri);
     }
 
     @Override
@@ -102,7 +112,13 @@ public class StudentProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) {
         // TODO: Implement this to handle query requests from clients.
-        throw new UnsupportedOperationException("Not yet implemented");
+        // 根据 Uri 解析表名
+        String tableName = uri.getPathSegments().get(0);
+
+        Cursor cursor = db.query(tableName, projection, selection,
+                selectionArgs,null,null,null);
+        return cursor;
+//        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
