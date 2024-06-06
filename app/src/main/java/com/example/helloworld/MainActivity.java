@@ -8,11 +8,14 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private String innerText = "";
     private TextView textView;
     private boolean serviceStatus = false; // 表示起始为关闭
+    private LinearLayout fragmentContainer; // 碎片容器
     protected void helpSetText(String attachString) {
         if (textView == null) {
             Log.d(TAG, "textView is null");
@@ -33,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(TAG, innerText);
     }
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,6 +47,22 @@ public class MainActivity extends AppCompatActivity {
 
         helpSetText("OnCreate Before Layout");
         setContentView(R.layout.activity_main); // 此代码完成后才完成渲染，且分配内存，才能找到子控件
+
+        // 通过意图调用
+        Uri uri = getIntent().getData();
+        if (uri != null) {
+            Toast.makeText(getBaseContext(), uri.toString(), Toast.LENGTH_LONG).show();
+        }
+
+        // 渲染碎片
+        fragmentContainer = findViewById(R.id.fragmentContainer);
+        if (fragmentContainer.getChildCount() == 0) {
+            // 动态加载 fragment
+            BlankFragment blankFragment = new BlankFragment();
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.add(R.id.fragmentContainer, blankFragment);
+            transaction.commit();
+        }
 
         // 只有在设置活动 View 后才能获取到子 textView
         this.textView = findViewById(R.id.textView);
@@ -79,6 +101,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 broadcastIntent(v);
+            }
+        });
+
+        Button replaceFragment = findViewById(R.id.replaceFragment);
+        replaceFragment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                BlankFragment2 fragment2 = new BlankFragment2();
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.fragmentContainer, fragment2);
+                transaction.addToBackStack(null);
+                transaction.commit();
             }
         });
 
